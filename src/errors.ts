@@ -1,22 +1,27 @@
 // src/errors.ts
+export type ErrorCode = "TIMEOUT" | "NETWORK" | "PARSE" | "ACCESS_DENIED";
+
 export class WebPullError extends Error {
   constructor(
     public message: string,
     public url: string,
-    public code: "TIMEOUT" | "NETWORK" | "PARSE" | "ACCESS_DENIED",
+    public code: ErrorCode,
   ) {
     super(`[${code}] at ${url}: ${message}`);
+    this.name = "WebPullError";
   }
 }
 
-export function logError(err: WebPullError) {
-  console.error(`❌ ERROR: ${err.code}`);
-  console.error(`   URL: ${err.url}`);
-  console.error(`   Message: ${err.message}`);
+export function handleAndLog(err: WebPullError) {
+  const suggestions: Record<ErrorCode, string> = {
+    TIMEOUT: "Increase your --timeout setting or check your network latency.",
+    NETWORK:
+      "The server rejected the request. Check your proxy/IP rotation settings.",
+    PARSE: "The page structure may have changed. Check the DOM selector.",
+    ACCESS_DENIED: "Bot detection triggered. Try a different User-Agent.",
+  };
 
-  if (err.code === "TIMEOUT") {
-    console.error(
-      `   Suggestion: Increase the timeout duration in the renderer or check your proxy settings.`,
-    );
-  }
+  console.error(`\n❌ [${err.code}] Failed to process: ${err.url}`);
+  console.error(`   Reason: ${err.message}`);
+  console.error(`   Suggestion: ${suggestions[err.code]}\n`);
 }
