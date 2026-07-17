@@ -2,9 +2,20 @@
 import { JSDOM } from "jsdom";
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
-export function convertToMarkdown(html: string): string {
+export function convertToMarkdown(html: string, url: string): string {
   const dom = new JSDOM(html);
-  // Optional: Add logic here to remove <script>, <style>, and <nav> tags
-  // to ensure clean content extraction.
-  return NodeHtmlMarkdown.translate(dom.window.document.body.innerHTML);
+  const title = dom.window.document.title || "Untitled";
+
+  const markdown = NodeHtmlMarkdown.translate(
+    dom.window.document.body.innerHTML,
+  );
+
+  // Injecting YAML Frontmatter
+  const frontmatter = `---
+title: "${title}"
+source: "${url}"
+date: "${new Date().toISOString()}"
+---\n\n`;
+
+  return frontmatter + markdown;
 }
