@@ -1,4 +1,5 @@
-import { write, mkdir } from "bun";
+import { write } from "bun";
+import { mkdir } from "node:fs/promises";
 import { join, dirname } from "path";
 
 export async function saveMarkdown(urlPath: string, content: string) {
