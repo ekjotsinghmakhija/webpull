@@ -1,14 +1,21 @@
 // src/renderer.ts
-import { chromium, type Page } from "playwright";
+import { WebPullError } from "./errors";
 
 export async function renderPage(url: string): Promise<string> {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  try {
+    // ... launch browser ...
+    const response = await page.goto(url, { timeout: 30000 });
 
-  await page.goto(url, { waitUntil: "networkidle" });
-  const content = await page.content();
+    if (response?.status() !== 200) {
+      throw new WebPullError(
+        `Server returned status ${response?.status()}`,
+        url,
+        "NETWORK",
+      );
+    }
 
-  await browser.close();
-  return content;
+    return await page.content();
+  } catch (e: any) {
+    throw new WebPullError(e.message, url, "TIMEOUT");
+  }
 }
