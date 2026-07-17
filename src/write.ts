@@ -1,13 +1,18 @@
-// src/write.ts
 import { write, mkdir } from "bun";
-import { join } from "path";
+import { join, dirname } from "path";
 
-export async function saveMarkdown(path: string, content: string) {
-  // Ensure the directory exists
-  await mkdir("output", { recursive: true });
+export async function saveMarkdown(urlPath: string, content: string) {
+  // Normalize the URL path to a local file system path
+  let safePath = urlPath === "/" ? "index" : urlPath.replace(/^\//, "");
+  if (!safePath.endsWith(".md")) {
+    safePath += ".md";
+  }
 
-  const filename = path.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-  const outputPath = join("output", filename + ".md");
+  const outputPath = join("output", safePath);
+
+  // Ensure nested directories exist
+  await mkdir(dirname(outputPath), { recursive: true });
   await write(outputPath, content);
-  console.log(`📄 Saved to ${outputPath}`);
+
+  console.log(`📄 Saved: ${outputPath}`);
 }
