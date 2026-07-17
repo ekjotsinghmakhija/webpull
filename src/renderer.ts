@@ -1,15 +1,24 @@
-// src/renderer.ts
 import { chromium } from "playwright";
 import { WebPullError } from "./errors";
 
 export async function renderPage(url: string): Promise<string> {
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage();
-    const response = await page.goto(url, { timeout: 30000 });
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    if (response?.status() !== 200) {
-      throw new WebPullError(`Status ${response?.status()}`, url, "NETWORK");
+    // networkidle ensures JS bundles have finished executing
+    const response = await page.goto(url, {
+      waitUntil: "networkidle",
+      timeout: 30000,
+    });
+
+    if (response && response.status() >= 400) {
+      throw new WebPullError(
+        `Server returned status ${response.status()}`,
+        url,
+        "NETWORK",
+      );
     }
 
     return await page.content();
