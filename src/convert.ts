@@ -1,18 +1,32 @@
-// src/convert.ts
 import { JSDOM } from "jsdom";
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
 export function convertToMarkdown(html: string, url: string): string {
   const dom = new JSDOM(html);
-  const title = dom.window.document.title || "Untitled";
+  const document = dom.window.document;
 
-  const markdown = NodeHtmlMarkdown.translate(
-    dom.window.document.body.innerHTML,
-  );
+  // Clean up unnecessary bloat before conversion
+  const selectorsToRemove = [
+    "nav",
+    "footer",
+    "script",
+    "style",
+    "noscript",
+    "iframe",
+    "svg",
+  ];
+  selectorsToRemove.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => el.remove());
+  });
 
-  // Injecting YAML Frontmatter
+  const title = document.title || "Untitled";
+
+  // Convert the remaining clean DOM body
+  const markdown = NodeHtmlMarkdown.translate(document.body.innerHTML);
+
+  // Inject YAML Frontmatter
   const frontmatter = `---
-title: "${title}"
+title: "${title.replace(/"/g, '\\"')}"
 source: "${url}"
 date: "${new Date().toISOString()}"
 ---\n\n`;
