@@ -1,15 +1,65 @@
 # webpull
 
-To install dependencies:
+Pull any public docs site into local markdown files.
 
-```bash
-bun install
+```
+$ webpull https://docs.example.com
+
+  ⚡ webpull · 16 workers
+  docs.example.com → ./docs.example.com
+
+  ●●●·●●●●·●●●●●●●·
+  ├─ ✓ getting-started/installation.md
+  ├─ ✓ api/authentication.md
+  ├─ ✓ guides/deployment.md
+  █████████████░░░░░░░ 68% 102/150 · 6p/s · 17.2s
 ```
 
-To run:
+## Install
 
 ```bash
-bun run index.ts
+bun install -g webpull
 ```
 
-This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## Usage
+
+```
+webpull <url> [options]
+
+Options:
+  -o, --out <dir>   Output directory (default: ./<hostname>)
+  -m, --max <n>     Max pages to pull (default: 500)
+```
+
+## Examples
+
+```bash
+# Pull React docs
+webpull https://react.dev/reference
+
+# Custom output dir, limit to 100 pages
+webpull https://docs.python.org -o ./python-docs -m 100
+```
+
+## How it works
+
+1. **Discovers pages** via sitemap.xml, nav link extraction, JS bundle route parsing, or link crawling
+2. **Fetches in parallel** using a worker pool sized to your CPU cores
+3. **Renders SPAs** with headless Chromium when JavaScript-rendered content is detected
+4. **Converts to markdown** using [Defuddle](https://github.com/nichochar/defuddle) for intelligent content extraction
+5. **Writes to disk** preserving the URL path structure with YAML frontmatter
+
+Each markdown file includes metadata:
+
+```yaml
+---
+title: "Getting Started"
+url: "https://docs.example.com/getting-started"
+---
+```
+
+## Requirements
+
+- [Bun](https://bun.sh) runtime
+- [Playwright](https://playwright.dev) Chromium (auto-used for SPAs; install with `npx playwright install chromium`)
+
